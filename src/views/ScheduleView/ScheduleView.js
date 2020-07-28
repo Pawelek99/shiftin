@@ -48,18 +48,21 @@ const ScheduleView = () => {
       ...Array(employees.length - shiftArrangements.length).fill(0)
     );
 
+    const temp = computeShifts({
+      employees,
+      inputDate: data.date,
+      daysOff: data.daysOff,
+      shiftArrangements: shiftArrangements.sort((a, b) => a - b),
+    });
+    console.log(temp);
+
     setShifts(
-      sortShifts(
-        // completeShifts(
-        computeShifts({
-          employees,
-          inputDate: data.date,
-          daysOff: data.daysOff,
-          shiftArrangements: shiftArrangements.sort((a, b) => a - b),
-        })
-        // getMonthWorkingHours(data.date.month, data.date.year, data.daysOff)[0]
-        // )
-      )
+      // sortShifts(
+      // completeShifts(
+      temp.employees
+      // getMonthWorkingHours(data.date.month, data.date.year, data.daysOff)[0]
+      // )
+      // )
     );
   }, []);
 

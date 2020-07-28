@@ -1,87 +1,76 @@
 const { rand, getVariations, getCombinationsSum, getMonthDays } = require('.');
 
-const shiftMeetsConditions = (employees, shifts) => {
-  for (let i = 0; i < employees.length; i++) {
-    if (
-      (employees[i].daysOffLeft === 0 && shifts[i] === 0) ||
-      employees[i].hoursLeft < shifts[i]
-    ) {
-      return false;
-    }
-  }
-
-  return true;
-};
-
-const computeShifts = (
-  { employees, inputDate, daysOff, shiftArrangements },
-  variations,
-  date
-) => {
-  if (!date || !variations) {
-    date = new Date(inputDate.year, inputDate.month, 1);
-    variations = getVariations(shiftArrangements);
-  }
-
-  if (date.getMonth() !== inputDate.month) {
-    return { employees, inputDate, daysOff };
-  }
-
-  if (daysOff.includes(date.getDate())) {
-    const output = { employees: [...employees], inputDate, daysOff };
-    for (let i = 0; i < output.employees.length; i++) {
-      output.employees[i][date.getMonth()] = {
-        ...output.employees[i][date.getMonth()],
-        [date.getDate()]: 0,
-      };
-    }
-
-    return computeShifts(
-      output,
-      variations,
-      new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
-    );
-  }
-
-  const tempVariations = variations.filter((shifts) =>
-    shiftMeetsConditions(employees, shifts)
-  );
-
-  const startIndex = rand(tempVariations.length);
-  for (let j = startIndex; j < startIndex + tempVariations.length; j++) {
-    const shifts = tempVariations[j % tempVariations.length];
-
-    if (!shiftMeetsConditions(employees, shifts)) {
-      continue;
-    }
-
-    const tempEmployees = [...employees];
-
-    for (let j = 0; j < tempEmployees.length; j++) {
-      if (shifts[j] === 0) {
-        tempEmployees[j].daysOffLeft--;
+const computeShifts = ({
+  employees: inputEmployees,
+  inputDate,
+  daysOff,
+  shiftArrangements,
+}) => {
+  let dayShifts = [];
+  let done = true;
+  let count = 300;
+  while (1) {
+    let variations = getVariations(shiftArrangements);
+    const date = new Date(inputDate.year, inputDate.month, 1);
+    const employees = JSON.parse(JSON.stringify(inputEmployees));
+    do {
+      if (daysOff.includes(date.getDate())) {
+        for (let i = 0; i < employees.length; i++) {
+          employees[i][date.getMonth()] = {
+            ...employees[i][date.getMonth()],
+            [date.getDate()]: 0,
+          };
+        }
+        date.setDate(date.getDate() + 1);
+        continue;
       }
 
-      tempEmployees[j].hoursLeft -= shifts[j];
-      tempEmployees[j].hours += shifts[j];
-      tempEmployees[j][date.getMonth()] = {
-        ...tempEmployees[j][date.getMonth()],
-        [date.getDate()]: shifts[j],
+      variations = variations.filter((shifts) => {
+        for (let i = 0; i < employees.length; i++) {
+          if (
+            (employees[i].daysOffLeft === 0 && shifts[i] === 0) ||
+            employees[i].hoursLeft < shifts[i]
+          ) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      const shifts = variations[rand(variations.length)];
+      if (!shifts) {
+        done = false;
+        break;
+      }
+
+      for (let i = 0; i < employees.length; i++) {
+        if (shifts[i] === 0) {
+          employees[i].daysOffLeft--;
+        }
+
+        employees[i].hoursLeft -= shifts[i];
+        employees[i].hours += shifts[i];
+        employees[i][date.getMonth()] = {
+          ...employees[i][date.getMonth()],
+          [date.getDate()]: shifts[i],
+        };
+      }
+
+      dayShifts.push(shifts);
+
+      date.setDate(date.getDate() + 1);
+    } while (date.getMonth() - inputDate.month < 1);
+
+    if (done || count-- === 0) {
+      return {
+        employees,
+        inputDate,
+        daysOff,
       };
     }
-
-    const output = computeShifts(
-      { employees: tempEmployees, inputDate, daysOff },
-      tempVariations,
-      new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
-    );
-
-    if (output) {
-      return output;
-    }
+    done = true;
   }
-
-  return false;
 };
 
 const splitIntoRemainders = (hoursCount, hoursLeft) => {
@@ -172,7 +161,7 @@ const completeShifts = ({ employees, inputDate, daysOff }, possibleHours) => {
   };
 };
 
-const sortShifts = ({ employees, inputDate, daysOff }, count = 50) => {
+const sortShifts = ({ employees, inputDate, daysOff }, count = 2) => {
   if (count === 0) {
     return employees;
   }
