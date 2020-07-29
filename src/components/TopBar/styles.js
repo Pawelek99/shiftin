@@ -11,6 +11,7 @@ export const StyledTopBar = styled.div`
   display: flex;
   padding: 0 50px;
   align-items: center;
+  z-index: 100;
 `;
 
 export const Img = styled.img`

@@ -325,7 +325,7 @@ const InputView = () => {
     <Wrapper>
       <TopBar />
       <CenteredWrapper>
-        <Card style={{ height: '600px' }}>{content[step].value}</Card>
+        <Card>{content[step].value}</Card>
         <RowWrapper>
           <Button
             secondary

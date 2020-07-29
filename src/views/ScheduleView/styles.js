@@ -17,7 +17,6 @@ export const Card = styled.div`
   border-radius: 5px;
   box-shadow: 0 4px 10px 5px rgba(0, 0, 0, 0.03);
   background: #ffffff;
-  overflow: hidden;
 `;
 
 export const List = styled.div`

@@ -3,15 +3,15 @@ import styled, { css } from 'styled-components';
 export const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   background: #efefef;
 `;
 
 export const CenteredWrapper = styled.div`
   width: 100%;
-  height: 100%;
   max-width: 720px;
+  padding: 100px 0;
   flex: 1;
   display: flex;
   align-self: center;

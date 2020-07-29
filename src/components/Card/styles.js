@@ -6,8 +6,5 @@ export const StyledCard = styled.div`
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
   padding: 50px 75px;
   border-radius: 5px;
-  overflow-y: auto;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  transition: all 0.3s;
 `;
