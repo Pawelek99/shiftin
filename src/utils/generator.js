@@ -13,7 +13,7 @@ const shiftMeetsConditions = (employees, shifts) => {
   return true;
 };
 
-const computeShifts = (
+export const computeShifts = (
   { employees, inputDate, daysOff, shiftArrangements },
   variations,
   date
@@ -51,11 +51,7 @@ const computeShifts = (
   for (let j = startIndex; j < startIndex + tempVariations.length; j++) {
     const shifts = tempVariations[j % tempVariations.length];
 
-    if (!shiftMeetsConditions(employees, shifts)) {
-      continue;
-    }
-
-    const tempEmployees = [...employees];
+    const tempEmployees = JSON.parse(JSON.stringify(employees));
 
     for (let j = 0; j < tempEmployees.length; j++) {
       if (shifts[j] === 0) {
@@ -84,7 +80,7 @@ const computeShifts = (
   return false;
 };
 
-const splitIntoRemainders = (hoursCount, hoursLeft) => {
+export const splitIntoRemainders = (hoursCount, hoursLeft) => {
   const hours = Object.keys(hoursCount);
   const remainderHourPairs = {};
   const possibleRemainders = {};
@@ -127,7 +123,10 @@ const splitIntoRemainders = (hoursCount, hoursLeft) => {
   return combinations;
 };
 
-const completeShifts = ({ employees, inputDate, daysOff }, possibleHours) => {
+export const completeShifts = (
+  { employees, inputDate, daysOff },
+  possibleHours
+) => {
   const output = [...employees];
   for (let i = 0; i < output.length; i++) {
     if (output[i].hoursLeft !== 0) {
@@ -172,7 +171,7 @@ const completeShifts = ({ employees, inputDate, daysOff }, possibleHours) => {
   };
 };
 
-const sortShifts = ({ employees, inputDate, daysOff }, count = 50) => {
+export const sortShifts = ({ employees, inputDate, daysOff }, count = 50) => {
   if (count === 0) {
     return employees;
   }
@@ -212,10 +211,4 @@ const sortShifts = ({ employees, inputDate, daysOff }, count = 50) => {
   } while (date.getMonth() - inputDate.month < 1);
 
   return output;
-};
-
-module.exports = {
-  sortShifts,
-  completeShifts,
-  computeShifts,
 };

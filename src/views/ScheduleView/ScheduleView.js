@@ -7,14 +7,13 @@ import {
   Schedule,
   ScheduleRow,
   ScheduleEntry,
+  Loader,
+  LoaderWrapper,
 } from './styles';
-import {
-  completeShifts,
-  computeShifts,
-  sortShifts,
-} from '../../utils/generator';
 import { getDay, getMonthWorkingHours, weekdays } from '../../utils';
 import TopBar from '../../components/TopBar/TopBar';
+import generator_worker from '../../utils/generator_worker.js';
+import WebWorker from '../../utils/WebWorker';
 
 const ScheduleView = () => {
   const [currentMonth, setCurrentMonth] = useState(0);
@@ -48,34 +47,29 @@ const ScheduleView = () => {
       ...Array(employees.length - shiftArrangements.length).fill(0)
     );
 
-    const temp = computeShifts({
+    const worker = new WebWorker(generator_worker);
+    worker.postMessage({
       employees,
       inputDate: data.date,
       daysOff: data.daysOff,
       shiftArrangements: shiftArrangements.sort((a, b) => a - b),
     });
-    console.log(temp);
 
-    setShifts(
-      // sortShifts(
-      // completeShifts(
-      temp.employees
-      // getMonthWorkingHours(data.date.month, data.date.year, data.daysOff)[0]
-      // )
-      // )
+    worker.addEventListener('message', (output) =>
+      setShifts(output.data.employees)
     );
   }, []);
 
   return (
     <Wrapper>
       <TopBar />
-      <Card
-        style={{
-          width: '100%',
-          boxShadow: 'none',
-        }}>
-        {shifts && (
-          <>
+      {shifts ? (
+        <>
+          <Card
+            style={{
+              width: '100%',
+              boxShadow: 'none',
+            }}>
             <List>
               <ListItem></ListItem>
               {shifts.map((shift, i) => (
@@ -129,9 +123,21 @@ const ScheduleView = () => {
                 </ScheduleRow>
               ))}
             </Schedule>
-          </>
-        )}
-      </Card>
+          </Card>
+        </>
+      ) : (
+        <LoaderWrapper>
+          <Loader>
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+          </Loader>
+          <span style={{ textAlign: 'center', justifySelf: 'center' }}>
+            Trwa konsultowanie z pracownikami
+          </span>
+        </LoaderWrapper>
+      )}
     </Wrapper>
   );
 };
