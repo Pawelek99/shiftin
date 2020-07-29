@@ -12,8 +12,10 @@ import {
 } from './styles';
 import { getDay, getMonthWorkingHours, weekdays } from '../../utils';
 import TopBar from '../../components/TopBar/TopBar';
+import Button from '../../components/Button/Button';
 import generator_worker from '../../utils/generator_worker.js';
 import WebWorker from '../../utils/WebWorker';
+import exportAsExcel from 'js-export-excel';
 
 const ScheduleView = () => {
   const [currentMonth, setCurrentMonth] = useState(0);
@@ -33,9 +35,52 @@ const ScheduleView = () => {
 
     worker.addEventListener('message', (output) => {
       interval && clearInterval(interval);
-      console.log(output);
-      setShifts(output.data.employees);
+      setShifts(output.data);
     });
+  };
+
+  const exportFile = () => {
+    const options = {
+      fileName: `schedule_${currentMonth}_${currentYear}`,
+      datas: [
+        {
+          sheetData: shifts.map((shift) => ({
+            name: shift.name,
+            ...Object.entries(shift[currentMonth]).map(([key, v]) =>
+              v === 0 ? (shift.daysOff.includes(parseInt(key)) ? '-' : '') : v
+            ),
+            sum: Object.values(shift[currentMonth]).reduce(
+              (acc, v) => acc + v,
+              0
+            ),
+          })),
+          sheetName: 'Schedule',
+          sheetFilter: [
+            'name',
+            ...Object.keys(shifts[0][currentMonth]).map((key) => key - 1),
+            'sum',
+          ],
+          sheetHeader: [
+            '',
+            ...Object.keys(shifts[0][currentMonth]).map(
+              (day) =>
+                `${day < 10 ? `0${day}` : day}.${
+                  currentMonth + 1 < 10
+                    ? `0${currentMonth + 1}`
+                    : currentMonth + 1
+                }`
+            ),
+            'Suma godzin',
+          ],
+          columnWidths: [
+            6,
+            ...Object.keys(shifts[0][currentMonth]).map(() => 2),
+            6,
+          ],
+        },
+      ],
+    };
+    new exportAsExcel(options).saveExcel();
   };
 
   useEffect(() => {
@@ -137,6 +182,11 @@ const ScheduleView = () => {
               ))}
             </Schedule>
           </Card>
+          <Button
+            style={{ margin: '20px', width: '200px', alignSelf: 'center' }}
+            onClick={() => exportFile()}>
+            Export
+          </Button>
         </>
       ) : (
         <LoaderWrapper>

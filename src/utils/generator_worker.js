@@ -5,6 +5,10 @@ export default () => {
     );
   };
 
+  const getMonthDays = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
   const getVariations = (entries) => {
     if (entries.length === 1) {
       return [entries];
@@ -128,9 +132,55 @@ export default () => {
     return false;
   };
 
+  const sortShifts = ({ employees, inputDate, daysOff }, count = 50) => {
+    if (count === 0) {
+      return employees;
+    }
+    const output = JSON.parse(JSON.stringify(employees));
+    const date = new Date(inputDate.year, inputDate.month, 1);
+    const countStreak = {};
+    do {
+      if (daysOff.includes(date.getDate())) {
+        date.setDate(date.getDate() + 1);
+        continue;
+      }
+
+      for (let i = 0; i < output.length; i++) {
+        const v = output[i][inputDate.month][date.getDate()];
+        countStreak[i] = v === 12 ? (countStreak[i] || 0) + 1 : 0;
+
+        if (
+          countStreak[i] >= 3 ||
+          (v > 0 && (output[i].daysOff || []).includes(date.getDate()))
+        ) {
+          let index;
+          do {
+            index = rand(1, getMonthDays(inputDate.month, inputDate.year));
+          } while (daysOff.includes(index));
+          for (let j = 0; j < output.length; j++) {
+            const shift = output[j];
+            const temp = shift[inputDate.month][index];
+            shift[inputDate.month][index] =
+              shift[inputDate.month][date.getDate()];
+            shift[inputDate.month][date.getDate()] = temp;
+          }
+
+          return sortShifts(
+            { employees: output, inputDate, daysOff },
+            count - 1
+          );
+        }
+      }
+
+      date.setDate(date.getDate() + 1);
+    } while (date.getMonth() - inputDate.month < 1);
+
+    return output;
+  };
+
   /* eslint no-restricted-globals: ["off", "self"] */
   self.addEventListener('message', (input) => {
-    self.postMessage(computeShifts(input.data));
+    self.postMessage(sortShifts(computeShifts(input.data)));
     self.close();
   });
 };
