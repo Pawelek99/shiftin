@@ -18,7 +18,24 @@ import WebWorker from '../../utils/WebWorker';
 const ScheduleView = () => {
   const [currentMonth, setCurrentMonth] = useState(0);
   const [currentYear, setCurrentYear] = useState(0);
+  const [attempts, setAttempts] = useState(0);
   const [shifts, setShifts] = useState();
+
+  const startWorker = (input) => {
+    const worker = new WebWorker(generator_worker);
+    worker.postMessage(input);
+
+    const interval = setInterval(() => {
+      worker.terminate();
+      worker.postMessage(input);
+      setAttempts((a) => a + 1);
+    }, 3000);
+
+    worker.addEventListener('message', (output) => {
+      interval && clearInterval(interval);
+      setShifts(output.data.employees);
+    });
+  };
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem('data'));
@@ -47,17 +64,12 @@ const ScheduleView = () => {
       ...Array(employees.length - shiftArrangements.length).fill(0)
     );
 
-    const worker = new WebWorker(generator_worker);
-    worker.postMessage({
+    startWorker({
       employees,
       inputDate: data.date,
       daysOff: data.daysOff,
       shiftArrangements: shiftArrangements.sort((a, b) => a - b),
     });
-
-    worker.addEventListener('message', (output) =>
-      setShifts(output.data.employees)
-    );
   }, []);
 
   return (
@@ -135,6 +147,9 @@ const ScheduleView = () => {
           </Loader>
           <span style={{ textAlign: 'center', justifySelf: 'center' }}>
             Trwa konsultowanie z pracownikami
+            {Array((attempts % 3) + 1)
+              .fill('.')
+              .join('')}
           </span>
         </LoaderWrapper>
       )}
