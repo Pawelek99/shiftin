@@ -33,6 +33,7 @@ const ScheduleView = () => {
 
     worker.addEventListener('message', (output) => {
       interval && clearInterval(interval);
+      console.log(output);
       setShifts(output.data.employees);
     });
   };

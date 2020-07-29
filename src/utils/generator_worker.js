@@ -18,11 +18,17 @@ export default () => {
     }
 
     const output = [];
-    for (let entry of new Set(entries)) {
-      const tempEntries = [...entries];
+    const set = [];
+    Array.prototype.push.apply(set, Array.from(new Set(entries)));
+    for (let i = 0; i < set.length; i++) {
+      const entry = set[i];
+      const tempEntries = JSON.parse(JSON.stringify(entries));
       tempEntries.splice(tempEntries.indexOf(entry), 1);
-      for (let nestedEntry of getVariations(tempEntries)) {
-        const potentialEntry = [entry, ...nestedEntry];
+      const variations = getVariations(tempEntries);
+      for (let j = 0; j < variations.length; j++) {
+        const nestedEntry = variations[j];
+        const potentialEntry = [entry];
+        Array.prototype.push.apply(potentialEntry, nestedEntry);
         if (
           output.find((entry) =>
             entry.every((item, i) => item === potentialEntry[i])
@@ -67,15 +73,15 @@ export default () => {
 
     if (daysOff.includes(date.getDate())) {
       const output = {
-        employees: [...employees],
+        employees: JSON.parse(JSON.stringify(employees)),
         inputDate,
         daysOff,
       };
       for (let i = 0; i < output.employees.length; i++) {
-        output.employees[i][date.getMonth()] = {
-          ...output.employees[i][date.getMonth()],
-          [date.getDate()]: 0,
-        };
+        if (!output.employees[i][date.getMonth()]) {
+          output.employees[i][date.getMonth()] = {};
+        }
+        output.employees[i][date.getMonth()][date.getDate()] = 0;
       }
 
       return computeShifts(
@@ -102,10 +108,10 @@ export default () => {
 
         tempEmployees[j].hoursLeft -= shifts[j];
         tempEmployees[j].hours += shifts[j];
-        tempEmployees[j][date.getMonth()] = {
-          ...tempEmployees[j][date.getMonth()],
-          [date.getDate()]: shifts[j],
-        };
+        if (!tempEmployees[j][date.getMonth()]) {
+          tempEmployees[j][date.getMonth()] = {};
+        }
+        tempEmployees[j][date.getMonth()][date.getDate()] = shifts[j];
       }
 
       const output = computeShifts(
