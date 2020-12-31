@@ -239,7 +239,7 @@ const InputView = () => {
                       ? 'godzinę dziennie'
                       : v >= 5
                       ? 'godzin dziennie'
-                      : 'godziny dizennie',
+                      : 'godziny dziennie',
                 },
               ]}>
               <ImgButton

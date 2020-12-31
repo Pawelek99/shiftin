@@ -1,9 +1,28 @@
 import styled, { css, keyframes } from 'styled-components';
 
+const enterAnimation = keyframes`
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+`;
+
+const exitAnimation = keyframes`
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+`;
+
 export const Wrapper = styled.div`
   background: #efefef;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
 `;
@@ -22,6 +41,7 @@ export const Card = styled.div`
 export const List = styled.div`
   width: 200px;
   display: inline-flex;
+  flex: 0;
   flex-direction: column;
   box-shadow: 0 4px 10px 5px rgba(0, 0, 0, 0.03);
   z-index: 2;
@@ -29,8 +49,9 @@ export const List = styled.div`
 
 export const ListItem = styled.div`
   width: 200px;
-  height: 60px;
-  padding: 20px;
+  height: 80px;
+  line-height: 80px;
+  padding: 0 20px;
   font-size: 1.2rem;
   color: #515151;
   border: 1px solid #efefef;
@@ -43,30 +64,47 @@ export const Schedule = styled.div`
 `;
 
 export const ScheduleRow = styled.div`
-  height: 60px;
+  height: 80px;
   display: inline-flex;
 `;
 
 export const ScheduleEntry = styled.div`
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   font-weight: ${({ header }) => (header ? 400 : 600)};
   display: inline-flex;
   align-items: center;
   flex-direction: column;
   justify-content: center;
   border: 1px solid #efefef;
+  transition: border 0.3s;
   ${({ header }) =>
     header &&
     css`
       border-bottom-width: 5px;
     `};
 
-  span {
+  ${({ header }) =>
+    !header &&
+    css`
+      cursor: pointer;
+      &:hover {
+        border: 1px solid #3f51b5;
+      }
+    `};
+
+  * {
     color: ${({ day }) =>
       day === 0 ? '#f53b3b' : day === 6 ? '#ababab' : '#515151'};
     align-self: center;
     justify-self: center;
+    font-size: 1.2rem;
+
+    &:last-child {
+      font-size: 0.8rem;
+      color: #ababab;
+      font-weight: 400;
+    }
   }
 `;
 
@@ -140,5 +178,37 @@ export const LoaderWrapper = styled.div`
 
   span {
     margin-top: 20px;
+  }
+`;
+
+export const StyledOptions = styled.div`
+  position: absolute;
+  top: ${({ pos }) => (pos ? pos.y + 'px' : '15px')};
+  left: ${({ pos }) => (pos ? pos.x + 'px' : '15px')};
+  padding: 10px 0;
+  background-color: #ffffff;
+  box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.05);
+  z-index: 50;
+
+  animation-name: ${({ exit }) => (exit ? exitAnimation : enterAnimation)};
+  animation-duration: 0.3s;
+  animation-timing-function: ease;
+  animation-delay: 0s;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
+  animation-play-state: running;
+`;
+
+export const StyledOptionItem = styled.p`
+  margin-block-start: 0;
+  margin-block-end: 0;
+  padding: 5px 10px;
+  cursor: pointer;
+  background-color: #ffffff;
+  transition: 0.3s background-color;
+
+  &:hover {
+    background-color: #efefef;
   }
 `;
